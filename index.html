@@ -441,12 +441,39 @@
             },
 
             utilities() {
-                renderCheckStep({
-                    id: 'utilitiesCheck',
-                    emoji: '🔒',
-                    name: '关闭门窗水电',
-                    nextState: 'trashQuery',
-                    stateKey: 'utilities'
+                updateProgress('utilities');
+                appTitle.textContent = "安全确认";
+                appSubtitle.textContent = "请确认已关闭门窗水电";
+
+                stepContainer.innerHTML = `
+                    <div class="step-card fade-in">
+                        <p class="question-text">请确认完成：</p>
+                        <div style="margin-bottom: 20px;">
+                            <label class="checkbox-label" id="label-utilitiesCheck">
+                                <input type="checkbox" id="utilitiesCheck">
+                                <span>🔒 关闭门窗水电</span>
+                            </label>
+                        </div>
+                        <button id="nextBtn" class="btn btn-primary" disabled>下一步</button>
+                    </div>
+                `;
+
+                const checkbox = document.getElementById('utilitiesCheck');
+                const nextBtn = document.getElementById('nextBtn');
+                const label = document.getElementById('label-utilitiesCheck');
+
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        nextBtn.disabled = false;
+                        label.classList.add('checked');
+                    } else {
+                        nextBtn.disabled = true;
+                        label.classList.remove('checked');
+                    }
+                });
+
+                nextBtn.addEventListener('click', () => {
+                    render('trashQuery');
                 });
             },
 
