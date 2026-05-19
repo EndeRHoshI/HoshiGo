@@ -330,7 +330,7 @@
             utilities: { emoji: '🔒', name: '关闭门窗水电', required: true, checked: false }
         };
 
-        const totalSteps = 6;
+        const totalSteps = 7;
         const stepIndexMap = {
             'idle': 0,
             'rainQuery': 1,
@@ -338,7 +338,8 @@
             'idQuery': 3,
             'trashQuery': 4,
             'checklist': 5,
-            'done': 6
+            'utilities': 6,
+            'done': 7
         };
 
         const stateHandlers = {
@@ -445,7 +446,7 @@
                 appSubtitle.textContent = "请确认所有项已勾选";
 
                 // 筛选出需要的物品
-                const requiredItems = Object.keys(checklistItems).filter(key => checklistItems[key].required);
+                const requiredItems = Object.keys(checklistItems).filter(key => checklistItems[key].required && key !== 'utilities');
                 
                 let listHtml = '';
                 requiredItems.forEach(key => {
@@ -489,6 +490,43 @@
                         const allChecked = requiredItems.every(k => checklistItems[k].checked);
                         nextBtn.disabled = !allChecked;
                     });
+                });
+
+                nextBtn.addEventListener('click', () => {
+                    render('utilities');
+                });
+            },
+
+            utilities() {
+                updateProgress('utilities');
+                appTitle.textContent = "安全确认";
+                appSubtitle.textContent = "请确认已关闭门窗水电";
+
+                stepContainer.innerHTML = `
+                    <div class="step-card fade-in">
+                        <p class="question-text">请确认完成：</p>
+                        <div style="margin-bottom: 20px; width: 100%;">
+                            <label class="checkbox-label" id="label-utilities">
+                                <input type="checkbox" id="check-utilities">
+                                <span>🔒 关闭门窗水电</span>
+                            </label>
+                        </div>
+                        <button id="nextBtn" class="btn btn-primary" style="margin-top: 20px;" disabled>下一步</button>
+                    </div>
+                `;
+
+                const checkbox = document.getElementById('check-utilities');
+                const nextBtn = document.getElementById('nextBtn');
+                const label = document.getElementById('label-utilities');
+
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        nextBtn.disabled = false;
+                        label.classList.add('checked');
+                    } else {
+                        nextBtn.disabled = true;
+                        label.classList.remove('checked');
+                    }
                 });
 
                 nextBtn.addEventListener('click', () => {
