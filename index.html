@@ -316,28 +316,31 @@
         const appTitle = document.getElementById('appTitle');
         const appSubtitle = document.getElementById('appSubtitle');
 
-        // 总步数映射（用于进度条）
-        const totalSteps = 15;
+        // 默认物品列表
+        let checklistItems = {
+            umbrella: { emoji: '☔️', name: '带雨伞', required: false, checked: false },
+            jacket: { emoji: '🧥', name: '带外套', required: false, checked: false },
+            idCard: { emoji: '🪪', name: '身份证', required: false, checked: false },
+            utilities: { emoji: '🔒', name: '关闭门窗水电', required: true, checked: false },
+            trash: { emoji: '🗑️', name: '倒垃圾', required: false, checked: false },
+            sunscreen: { emoji: '🧴', name: '防晒霜', required: true, checked: false },
+            repellent: { emoji: '🦟', name: '防蚊水', required: true, checked: false },
+            hairband: { emoji: '💇', name: '发圈', required: true, checked: false },
+            tissue: { emoji: '🤧', name: '纸巾', required: true, checked: false },
+            powerbank: { emoji: '🔋', name: '充电宝', required: true, checked: false }
+        };
+
+        const totalSteps = 6;
         const stepIndexMap = {
             'idle': 0,
             'rainQuery': 1,
-            'umbrella': 2,
-            'coldQuery': 3,
-            'jacket': 4,
-            'idQuery': 5,
-            'idCard': 6,
-            'utilities': 7,
-            'trashQuery': 8,
-            'trash': 9,
-            'sunscreen': 10,
-            'repellent': 11,
-            'hairband': 12,
-            'tissue': 13,
-            'powerbank': 14,
-            'done': 15
+            'coldQuery': 2,
+            'idQuery': 3,
+            'trashQuery': 4,
+            'checklist': 5,
+            'done': 6
         };
 
-        // 状态处理器
         const stateHandlers = {
             idle() {
                 updateProgress('idle');
@@ -365,22 +368,14 @@
                     <div class="step-card fade-in">
                         <p class="question-text">🌧️ 今天下雨或可能下雨吗？</p>
                         <div class="option-group">
-                            <button class="btn btn-primary" data-next="umbrella">是，带伞</button>
-                            <button class="btn btn-secondary" data-next="coldQuery">否，跳过</button>
+                            <button class="btn btn-primary" data-answer="yes">是，带伞</button>
+                            <button class="btn btn-secondary" data-answer="no">否，跳过</button>
                         </div>
                     </div>
                 `;
 
-                bindOptionButtons();
-            },
-
-            umbrella() {
-                renderCheckStep({
-                    id: 'umbrellaCheck',
-                    emoji: '☔️',
-                    name: '带雨伞',
-                    nextState: 'coldQuery',
-                    stateKey: 'umbrella'
+                bindQueryButtons('coldQuery', (answer) => {
+                    checklistItems.umbrella.required = (answer === 'yes');
                 });
             },
 
@@ -393,22 +388,14 @@
                     <div class="step-card fade-in">
                         <p class="question-text">💨 感觉冷或风大吗？</p>
                         <div class="option-group">
-                            <button class="btn btn-primary" data-next="jacket">是，带外套</button>
-                            <button class="btn btn-secondary" data-next="idQuery">否，跳过</button>
+                            <button class="btn btn-primary" data-answer="yes">是，带外套</button>
+                            <button class="btn btn-secondary" data-answer="no">否，跳过</button>
                         </div>
                     </div>
                 `;
 
-                bindOptionButtons();
-            },
-
-            jacket() {
-                renderCheckStep({
-                    id: 'jacketCheck',
-                    emoji: '🧥',
-                    name: '带外套',
-                    nextState: 'idQuery',
-                    stateKey: 'jacket'
+                bindQueryButtons('idQuery', (answer) => {
+                    checklistItems.jacket.required = (answer === 'yes');
                 });
             },
 
@@ -421,59 +408,14 @@
                     <div class="step-card fade-in">
                         <p class="question-text">🪪 需要带身份证吗？</p>
                         <div class="option-group">
-                            <button class="btn btn-primary" data-next="idCard">是，带身份证</button>
-                            <button class="btn btn-secondary" data-next="utilities">否，跳过</button>
+                            <button class="btn btn-primary" data-answer="yes">是，带身份证</button>
+                            <button class="btn btn-secondary" data-answer="no">否，跳过</button>
                         </div>
                     </div>
                 `;
 
-                bindOptionButtons();
-            },
-
-            idCard() {
-                renderCheckStep({
-                    id: 'idCardCheck',
-                    emoji: '🪪',
-                    name: '身份证',
-                    nextState: 'utilities',
-                    stateKey: 'idCard'
-                });
-            },
-
-            utilities() {
-                updateProgress('utilities');
-                appTitle.textContent = "安全确认";
-                appSubtitle.textContent = "请确认已关闭门窗水电";
-
-                stepContainer.innerHTML = `
-                    <div class="step-card fade-in">
-                        <p class="question-text">请确认完成：</p>
-                        <div style="margin-bottom: 20px;">
-                            <label class="checkbox-label" id="label-utilitiesCheck">
-                                <input type="checkbox" id="utilitiesCheck">
-                                <span>🔒 关闭门窗水电</span>
-                            </label>
-                        </div>
-                        <button id="nextBtn" class="btn btn-primary" disabled>下一步</button>
-                    </div>
-                `;
-
-                const checkbox = document.getElementById('utilitiesCheck');
-                const nextBtn = document.getElementById('nextBtn');
-                const label = document.getElementById('label-utilitiesCheck');
-
-                checkbox.addEventListener('change', (e) => {
-                    if (e.target.checked) {
-                        nextBtn.disabled = false;
-                        label.classList.add('checked');
-                    } else {
-                        nextBtn.disabled = true;
-                        label.classList.remove('checked');
-                    }
-                });
-
-                nextBtn.addEventListener('click', () => {
-                    render('trashQuery');
+                bindQueryButtons('trashQuery', (answer) => {
+                    checklistItems.idCard.required = (answer === 'yes');
                 });
             },
 
@@ -486,72 +428,71 @@
                     <div class="step-card fade-in">
                         <p class="question-text">🗑️ 需要倒垃圾吗？</p>
                         <div class="option-group">
-                            <button class="btn btn-primary" data-next="trash">是，去倒垃圾</button>
-                            <button class="btn btn-secondary" data-next="sunscreen">否，跳过</button>
+                            <button class="btn btn-primary" data-answer="yes">是，去倒垃圾</button>
+                            <button class="btn btn-secondary" data-answer="no">否，跳过</button>
                         </div>
                     </div>
                 `;
 
-                bindOptionButtons();
-            },
-
-            trash() {
-                renderCheckStep({
-                    id: 'trashCheck',
-                    emoji: '🗑️',
-                    name: '倒垃圾',
-                    nextState: 'sunscreen',
-                    stateKey: 'trash'
+                bindQueryButtons('checklist', (answer) => {
+                    checklistItems.trash.required = (answer === 'yes');
                 });
             },
 
-            sunscreen() {
-                renderCheckStep({
-                    id: 'sunscreenCheck',
-                    emoji: '🧴',
-                    name: '防晒霜',
-                    nextState: 'repellent',
-                    stateKey: 'sunscreen'
-                });
-            },
+            checklist() {
+                updateProgress('checklist');
+                appTitle.textContent = "物品确认";
+                appSubtitle.textContent = "请确认所有项已勾选";
 
-            repellent() {
-                renderCheckStep({
-                    id: 'repellentCheck',
-                    emoji: '🦟',
-                    name: '防蚊水',
-                    nextState: 'hairband',
-                    stateKey: 'repellent'
+                // 筛选出需要的物品
+                const requiredItems = Object.keys(checklistItems).filter(key => checklistItems[key].required);
+                
+                let listHtml = '';
+                requiredItems.forEach(key => {
+                    const item = checklistItems[key];
+                    listHtml += `
+                        <div style="margin-bottom: 12px; width: 100%;">
+                            <label class="checkbox-label" id="label-${key}">
+                                <input type="checkbox" id="check-${key}" data-key="${key}">
+                                <span>${item.emoji} ${item.name}</span>
+                            </label>
+                        </div>
+                    `;
                 });
-            },
 
-            hairband() {
-                renderCheckStep({
-                    id: 'hairbandCheck',
-                    emoji: '💇',
-                    name: '发圈',
-                    nextState: 'tissue',
-                    stateKey: 'hairband'
+                stepContainer.innerHTML = `
+                    <div class="step-card fade-in" style="width: 100%;">
+                        <p class="question-text">请确认完成以下事项：</p>
+                        <div style="width: 100%; max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                            ${listHtml}
+                        </div>
+                        <button id="nextBtn" class="btn btn-primary" style="margin-top: 20px;" disabled>下一步</button>
+                    </div>
+                `;
+
+                const checkboxes = stepContainer.querySelectorAll('input[type="checkbox"]');
+                const nextBtn = document.getElementById('nextBtn');
+
+                checkboxes.forEach(checkbox => {
+                    const key = checkbox.getAttribute('data-key');
+                    const label = document.getElementById(`label-${key}`);
+
+                    checkbox.addEventListener('change', (e) => {
+                        checklistItems[key].checked = e.target.checked;
+                        if (e.target.checked) {
+                            label.classList.add('checked');
+                        } else {
+                            label.classList.remove('checked');
+                        }
+                        
+                        // 检查是否全部勾选
+                        const allChecked = requiredItems.every(k => checklistItems[k].checked);
+                        nextBtn.disabled = !allChecked;
+                    });
                 });
-            },
 
-            tissue() {
-                renderCheckStep({
-                    id: 'tissueCheck',
-                    emoji: '🤧',
-                    name: '纸巾',
-                    nextState: 'powerbank',
-                    stateKey: 'tissue'
-                });
-            },
-
-            powerbank() {
-                renderCheckStep({
-                    id: 'powerbankCheck',
-                    emoji: '🔋',
-                    name: '充电宝',
-                    nextState: 'done',
-                    stateKey: 'powerbank'
+                nextBtn.addEventListener('click', () => {
+                    render('done');
                 });
             },
 
@@ -575,57 +516,25 @@
                 `;
 
                 document.getElementById('restartBtn').addEventListener('click', () => {
+                    // 重置状态
+                    Object.keys(checklistItems).forEach(key => {
+                        checklistItems[key].checked = false;
+                        if (key === 'umbrella' || key === 'jacket' || key === 'idCard' || key === 'trash') {
+                            checklistItems[key].required = false;
+                        }
+                    });
                     render('idle');
                 });
             }
         };
 
-        // 通用渲染检查项函数
-        function renderCheckStep({ id, emoji, name, nextState, stateKey }) {
-            updateProgress(stateKey);
-            appTitle.textContent = "物品确认";
-            appSubtitle.textContent = `请确认带好${name}`;
-
-            stepContainer.innerHTML = `
-                <div class="step-card fade-in">
-                    <p class="question-text">请确认带好：</p>
-                    <div style="margin-bottom: 20px;">
-                        <label class="checkbox-label" id="label-${id}">
-                            <input type="checkbox" id="${id}">
-                            <span>${emoji} ${name}</span>
-                        </label>
-                    </div>
-                    <button id="nextBtn" class="btn btn-primary" disabled>下一步</button>
-                </div>
-            `;
-
-            const checkbox = document.getElementById(id);
-            const nextBtn = document.getElementById('nextBtn');
-            const label = document.getElementById(`label-${id}`);
-
-            checkbox.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    nextBtn.disabled = false;
-                    label.classList.add('checked');
-                } else {
-                    nextBtn.disabled = true;
-                    label.classList.remove('checked');
-                }
-            });
-
-
-
-            nextBtn.addEventListener('click', () => {
-                render(nextState);
-            });
-        }
-
-        // 绑定是/否按钮的点击事件
-        function bindOptionButtons() {
-            const buttons = stepContainer.querySelectorAll('[data-next]');
+        // 绑定询问按钮，并处理逻辑
+        function bindQueryButtons(nextState, callback) {
+            const buttons = stepContainer.querySelectorAll('[data-answer]');
             buttons.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const nextState = btn.getAttribute('data-next');
+                    const answer = btn.getAttribute('data-answer');
+                    if (callback) callback(answer);
                     render(nextState);
                 });
             });
@@ -640,9 +549,7 @@
 
         // 渲染函数
         function render(state) {
-            // 清空容器，防止残留
             stepContainer.innerHTML = '';
-            // 执行对应状态的处理器
             if (stateHandlers[state]) {
                 stateHandlers[state]();
             } else {
