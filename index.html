@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>出门前检查清单 - 智能生活助手</title>
+    <meta name="description" content="一个智能、优雅的出门前物品检查清单，根据天气和需求动态引导，确保您不漏带任何重要物品。">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            --accent-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --text-color: #2d3748;
+            --bg-color: #f7fafc;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --border-radius: 20px;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* 背景装饰 */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(50px);
+            opacity: 0.5;
+        }
+
+        body::before {
+            background: #a1c4fd;
+            top: -100px;
+            left: -100px;
+        }
+
+        body::after {
+            background: #ff9a9e;
+            bottom: -100px;
+            right: -100px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .step-container {
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* 动画类 */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 按钮样式 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            outline: none;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #cbd5e0;
+            color: #a0aec0;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none !important;
+        }
+
+        /* 选项按钮组（是/否） */
+        .option-group {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .option-group .btn {
+            flex: 1;
+        }
+
+        /* 卡片内边距与样式 */
+        .step-card {
+            width: 100%;
+            padding: 10px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1a202c;
+            line-height: 1.4;
+        }
+
+        /* 自定义复选框 */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px solid #edf2f7;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .checkbox-label:hover {
+            border-color: #cbd5e0;
+            background: #f1f5f9;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            accent-color: #667eea;
+            cursor: pointer;
+        }
+
+        .checkbox-label.checked {
+            border-color: #667eea;
+            background: #ebf4ff;
+        }
+
+        /* 进度指示器 */
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transition: width 0.3s ease;
+            border-radius: 4px 4px 0 0;
+        }
+
+        /* 成功状态 */
+        .done-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: var(--success-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .done-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        /* 旋转小箭头按钮 */
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary-gradient);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: var(--transition);
+        }
+
+        .btn-icon:hover {
+            transform: translateY(-2px) rotate(360deg);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 480px) {
+            .app-container {
+                padding: 20px;
+                border-radius: 16px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .question-text {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="app-container" id="appContainer">
+        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        
+        <header>
+            <h1 id="appTitle">出门前准备</h1>
+            <div class="subtitle" id="appSubtitle">整理思绪，从容出发</div>
+        </header>
+
+        <section class="step-container" id="stepContainer">
+            <!-- 内容由 JS 动态生成 -->
+        </section>
+    </main>
+
+    <script>
+        const stepContainer = document.getElementById('stepContainer');
+        const progressBar = document.getElementById('progressBar');
+        const appTitle = document.getElementById('appTitle');
+        const appSubtitle = document.getElementById('appSubtitle');
+
+        // 总步数映射（用于进度条）
+        const totalSteps = 10;
+        const stepIndexMap = {
+            'idle': 0,
+            'rainQuery': 1,
+            'umbrella': 2,
+            'coldQuery': 3,
+            'jacket': 4,
+            'sunscreen': 5,
+            'repellent': 6,
+            'hairband': 7,
+            'tissue': 8,
+            'powerbank': 9,
+            'done': 10
+        };
+
+        // 状态处理器
+        const stateHandlers = {
+            idle() {
+                updateProgress('idle');
+                appTitle.textContent = "出门前准备";
+                appSubtitle.textContent = "整理思绪，从容出发";
+                
+                stepContainer.innerHTML = `
+                    <div class="step-card fade-in">
+                        <p class="question-text">准备好出门了吗？</p>
+                        <button id="startBtn" class="btn btn-primary">我要出门</button>
+                    </div>
+                `;
+                
+                document.getElementById('startBtn').addEventListener('click', () => {
+                    render('rainQuery');
+                });
+            },
+
+            rainQuery() {
+                updateProgress('rainQuery');
+                appTitle.textContent = "天气确认";
+                appSubtitle.textContent = "看看窗外，今天天气如何？";
+
+                stepContainer.innerHTML = `
+                    <div class="step-card fade-in">
+                        <p class="question-text">🌧️ 今天下雨或可能下雨吗？</p>
+                        <div class="option-group">
+                            <button class="btn btn-primary" data-next="umbrella">是，带伞</button>
+                            <button class="btn btn-secondary" data-next="coldQuery">否，跳过</button>
+                        </div>
+                    </div>
+                `;
+
+                bindOptionButtons();
+            },
+
+            umbrella() {
+                renderCheckStep({
+                    id: 'umbrellaCheck',
+                    emoji: '☔️',
+                    name: '带雨伞',
+                    nextState: 'coldQuery',
+                    stateKey: 'umbrella'
+                });
+            },
+
+            coldQuery() {
+                updateProgress('coldQuery');
+                appTitle.textContent = "体感确认";
+                appSubtitle.textContent = "感受一下温度吧";
+
+                stepContainer.innerHTML = `
+                    <div class="step-card fade-in">
+                        <p class="question-text">💨 感觉冷或风大吗？</p>
+                        <div class="option-group">
+                            <button class="btn btn-primary" data-next="jacket">是，带外套</button>
+                            <button class="btn btn-secondary" data-next="sunscreen">否，跳过</button>
+                        </div>
+                    </div>
+                `;
+
+                bindOptionButtons();
+            },
+
+            jacket() {
+                renderCheckStep({
+                    id: 'jacketCheck',
+                    emoji: '🧥',
+                    name: '带外套',
+                    nextState: 'sunscreen',
+                    stateKey: 'jacket'
+                });
+            },
+
+            sunscreen() {
+                renderCheckStep({
+                    id: 'sunscreenCheck',
+                    emoji: '🧴',
+                    name: '防晒霜',
+                    nextState: 'repellent',
+                    stateKey: 'sunscreen'
+                });
+            },
+
+            repellent() {
+                renderCheckStep({
+                    id: 'repellentCheck',
+                    emoji: '🦟',
+                    name: '防蚊水',
+                    nextState: 'hairband',
+                    stateKey: 'repellent'
+                });
+            },
+
+            hairband() {
+                renderCheckStep({
+                    id: 'hairbandCheck',
+                    emoji: '💇',
+                    name: '发圈',
+                    nextState: 'tissue',
+                    stateKey: 'hairband'
+                });
+            },
+
+            tissue() {
+                renderCheckStep({
+                    id: 'tissueCheck',
+                    emoji: '🤧',
+                    name: '纸巾',
+                    nextState: 'powerbank',
+                    stateKey: 'tissue'
+                });
+            },
+
+            powerbank() {
+                renderCheckStep({
+                    id: 'powerbankCheck',
+                    emoji: '🔋',
+                    name: '充电宝',
+                    nextState: 'done',
+                    stateKey: 'powerbank'
+                });
+            },
+
+            done() {
+                updateProgress('done');
+                appTitle.textContent = "检查完毕";
+                appSubtitle.textContent = "万事俱备，出发吧！";
+
+                stepContainer.innerHTML = `
+                    <div class="step-card fade-in">
+                        <span class="done-icon">🚀</span>
+                        <p class="done-title">准备好了，出门！</p>
+                        <button id="restartBtn" class="btn-icon" title="再次准备">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 4v6h-6"></path>
+                                <path d="M1 20v-6h6"></path>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+
+                document.getElementById('restartBtn').addEventListener('click', () => {
+                    render('idle');
+                });
+            }
+        };
+
+        // 通用渲染检查项函数
+        function renderCheckStep({ id, emoji, name, nextState, stateKey }) {
+            updateProgress(stateKey);
+            appTitle.textContent = "物品确认";
+            appSubtitle.textContent = `请确认带好${name}`;
+
+            stepContainer.innerHTML = `
+                <div class="step-card fade-in">
+                    <p class="question-text">请确认带好：</p>
+                    <div style="margin-bottom: 20px;">
+                        <label class="checkbox-label" id="label-${id}">
+                            <input type="checkbox" id="${id}">
+                            <span>${emoji} ${name}</span>
+                        </label>
+                    </div>
+                    <button id="nextBtn" class="btn btn-primary" disabled>下一步</button>
+                </div>
+            `;
+
+            const checkbox = document.getElementById(id);
+            const nextBtn = document.getElementById('nextBtn');
+            const label = document.getElementById(`label-${id}`);
+
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    nextBtn.disabled = false;
+                    label.classList.add('checked');
+                } else {
+                    nextBtn.disabled = true;
+                    label.classList.remove('checked');
+                }
+            });
+
+
+
+            nextBtn.addEventListener('click', () => {
+                render(nextState);
+            });
+        }
+
+        // 绑定是/否按钮的点击事件
+        function bindOptionButtons() {
+            const buttons = stepContainer.querySelectorAll('[data-next]');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const nextState = btn.getAttribute('data-next');
+                    render(nextState);
+                });
+            });
+        }
+
+        // 更新进度条
+        function updateProgress(state) {
+            const currentStep = stepIndexMap[state] || 0;
+            const progress = (currentStep / totalSteps) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // 渲染函数
+        function render(state) {
+            // 清空容器，防止残留
+            stepContainer.innerHTML = '';
+            // 执行对应状态的处理器
+            if (stateHandlers[state]) {
+                stateHandlers[state]();
+            } else {
+                console.error(`未知的状态: ${state}`);
+            }
+        }
+
+        // 初始化
+        render('idle');
+    </script>
+</body>
+</html>
