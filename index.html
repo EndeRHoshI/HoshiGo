@@ -321,13 +321,13 @@
             umbrella: { emoji: '☔️', name: '带雨伞', required: false, checked: false },
             jacket: { emoji: '🧥', name: '带外套', required: false, checked: false },
             idCard: { emoji: '🪪', name: '身份证', required: false, checked: false },
-            utilities: { emoji: '🔒', name: '关闭门窗水电', required: true, checked: false },
             trash: { emoji: '🗑️', name: '倒垃圾', required: false, checked: false },
             sunscreen: { emoji: '🧴', name: '防晒霜', required: true, checked: false },
             repellent: { emoji: '🦟', name: '防蚊水', required: true, checked: false },
             hairband: { emoji: '💇', name: '发圈', required: true, checked: false },
             tissue: { emoji: '🤧', name: '纸巾', required: true, checked: false },
-            powerbank: { emoji: '🔋', name: '充电宝', required: true, checked: false }
+            powerbank: { emoji: '🔋', name: '充电宝', required: true, checked: false },
+            utilities: { emoji: '🔒', name: '关闭门窗水电', required: true, checked: false }
         };
 
         const totalSteps = 6;
@@ -463,7 +463,7 @@
                 stepContainer.innerHTML = `
                     <div class="step-card fade-in" style="width: 100%;">
                         <p class="question-text">请确认完成以下事项：</p>
-                        <div style="width: 100%; max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                        <div style="width: 100%;">
                             ${listHtml}
                         </div>
                         <button id="nextBtn" class="btn btn-primary" style="margin-top: 20px;" disabled>下一步</button>
