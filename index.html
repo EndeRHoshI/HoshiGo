@@ -316,30 +316,16 @@
         const appTitle = document.getElementById('appTitle');
         const appSubtitle = document.getElementById('appSubtitle');
 
-        // 默认物品列表
-        let checklistItems = {
-            umbrella: { emoji: '☔️', name: '带雨伞', required: false, checked: false },
-            jacket: { emoji: '🧥', name: '带外套', required: false, checked: false },
-            idCard: { emoji: '🪪', name: '身份证', required: false, checked: false },
-            trash: { emoji: '🗑️', name: '倒垃圾', required: false, checked: false },
-            sunscreen: { emoji: '🧴', name: '防晒霜', required: true, checked: false },
-            repellent: { emoji: '🦟', name: '防蚊水', required: true, checked: false },
-            hairband: { emoji: '💇', name: '发圈', required: true, checked: false },
-            tissue: { emoji: '🤧', name: '纸巾', required: true, checked: false },
-            powerbank: { emoji: '🔋', name: '充电宝', required: true, checked: false },
-            utilities: { emoji: '🔒', name: '关闭门窗水电', required: true, checked: false }
-        };
-
-        const totalSteps = 7;
+        const totalSteps = 11;
         const stepIndexMap = {
             'idle': 0,
-            'rainQuery': 1,
-            'coldQuery': 2,
-            'idQuery': 3,
-            'trashQuery': 4,
-            'checklist': 5,
-            'utilities': 6,
-            'done': 7
+            'rainQuery': 1, 'umbrella': 2,
+            'coldQuery': 3, 'jacket': 4,
+            'idQuery': 5, 'idCard': 6,
+            'trashQuery': 7, 'trash': 8,
+            'regularChecklist': 9,
+            'utilities': 10,
+            'done': 11
         };
 
         const stateHandlers = {
@@ -375,9 +361,11 @@
                     </div>
                 `;
 
-                bindQueryButtons('coldQuery', (answer) => {
-                    checklistItems.umbrella.required = (answer === 'yes');
-                });
+                bindQueryButtons('umbrella', 'coldQuery');
+            },
+
+            umbrella() {
+                renderCheckStep({ id: 'umbrella', emoji: '☔️', name: '带雨伞', nextState: 'coldQuery' });
             },
 
             coldQuery() {
@@ -395,9 +383,11 @@
                     </div>
                 `;
 
-                bindQueryButtons('idQuery', (answer) => {
-                    checklistItems.jacket.required = (answer === 'yes');
-                });
+                bindQueryButtons('jacket', 'idQuery');
+            },
+
+            jacket() {
+                renderCheckStep({ id: 'jacket', emoji: '🧥', name: '带外套', nextState: 'idQuery' });
             },
 
             idQuery() {
@@ -415,9 +405,11 @@
                     </div>
                 `;
 
-                bindQueryButtons('trashQuery', (answer) => {
-                    checklistItems.idCard.required = (answer === 'yes');
-                });
+                bindQueryButtons('idCard', 'trashQuery');
+            },
+
+            idCard() {
+                renderCheckStep({ id: 'idCard', emoji: '🪪', name: '身份证', nextState: 'trashQuery' });
             },
 
             trashQuery() {
@@ -435,26 +427,32 @@
                     </div>
                 `;
 
-                bindQueryButtons('checklist', (answer) => {
-                    checklistItems.trash.required = (answer === 'yes');
-                });
+                bindQueryButtons('trash', 'regularChecklist');
             },
 
-            checklist() {
-                updateProgress('checklist');
-                appTitle.textContent = "物品确认";
-                appSubtitle.textContent = "请确认所有项已勾选";
+            trash() {
+                renderCheckStep({ id: 'trash', emoji: '🗑️', name: '倒垃圾', nextState: 'regularChecklist' });
+            },
 
-                // 筛选出需要的物品
-                const requiredItems = Object.keys(checklistItems).filter(key => checklistItems[key].required && key !== 'utilities');
-                
+            regularChecklist() {
+                updateProgress('regularChecklist');
+                appTitle.textContent = "常规物品确认";
+                appSubtitle.textContent = "请确认带好每日必备物品";
+
+                const items = [
+                    { key: 'sunscreen', emoji: '🧴', name: '防晒霜' },
+                    { key: 'repellent', emoji: '🦟', name: '防蚊水' },
+                    { key: 'hairband', emoji: '💇', name: '发圈' },
+                    { key: 'tissue', emoji: '🤧', name: '纸巾' },
+                    { key: 'powerbank', emoji: '🔋', name: '充电宝' }
+                ];
+
                 let listHtml = '';
-                requiredItems.forEach(key => {
-                    const item = checklistItems[key];
+                items.forEach(item => {
                     listHtml += `
                         <div style="margin-bottom: 12px; width: 100%;">
-                            <label class="checkbox-label" id="label-${key}">
-                                <input type="checkbox" id="check-${key}" data-key="${key}">
+                            <label class="checkbox-label" id="label-${item.key}">
+                                <input type="checkbox" id="check-${item.key}" data-key="${item.key}">
                                 <span>${item.emoji} ${item.name}</span>
                             </label>
                         </div>
@@ -463,7 +461,7 @@
 
                 stepContainer.innerHTML = `
                     <div class="step-card fade-in" style="width: 100%;">
-                        <p class="question-text">请确认完成以下事项：</p>
+                        <p class="question-text">请确认带好：</p>
                         <div style="width: 100%;">
                             ${listHtml}
                         </div>
@@ -473,21 +471,21 @@
 
                 const checkboxes = stepContainer.querySelectorAll('input[type="checkbox"]');
                 const nextBtn = document.getElementById('nextBtn');
+                let checkedStates = {};
 
                 checkboxes.forEach(checkbox => {
                     const key = checkbox.getAttribute('data-key');
                     const label = document.getElementById(`label-${key}`);
 
                     checkbox.addEventListener('change', (e) => {
-                        checklistItems[key].checked = e.target.checked;
+                        checkedStates[key] = e.target.checked;
                         if (e.target.checked) {
                             label.classList.add('checked');
                         } else {
                             label.classList.remove('checked');
                         }
                         
-                        // 检查是否全部勾选
-                        const allChecked = requiredItems.every(k => checklistItems[k].checked);
+                        const allChecked = items.every(item => checkedStates[item.key]);
                         nextBtn.disabled = !allChecked;
                     });
                 });
@@ -554,26 +552,60 @@
                 `;
 
                 document.getElementById('restartBtn').addEventListener('click', () => {
-                    // 重置状态
-                    Object.keys(checklistItems).forEach(key => {
-                        checklistItems[key].checked = false;
-                        if (key === 'umbrella' || key === 'jacket' || key === 'idCard' || key === 'trash') {
-                            checklistItems[key].required = false;
-                        }
-                    });
                     render('idle');
                 });
             }
         };
 
+        // 通用渲染检查项函数
+        function renderCheckStep({ id, emoji, name, nextState }) {
+            updateProgress(id);
+            appTitle.textContent = "物品确认";
+            appSubtitle.textContent = `请确认带好${name}`;
+
+            stepContainer.innerHTML = `
+                <div class="step-card fade-in">
+                    <p class="question-text">请确认带好：</p>
+                    <div style="margin-bottom: 20px; width: 100%;">
+                        <label class="checkbox-label" id="label-${id}">
+                            <input type="checkbox" id="check-${id}">
+                            <span>${emoji} ${name}</span>
+                        </label>
+                    </div>
+                    <button id="nextBtn" class="btn btn-primary" disabled>下一步</button>
+                </div>
+            `;
+
+            const checkbox = document.getElementById(`check-${id}`);
+            const nextBtn = document.getElementById('nextBtn');
+            const label = document.getElementById(`label-${id}`);
+
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    nextBtn.disabled = false;
+                    label.classList.add('checked');
+                } else {
+                    nextBtn.disabled = true;
+                    label.classList.remove('checked');
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                render(nextState);
+            });
+        }
+
         // 绑定询问按钮，并处理逻辑
-        function bindQueryButtons(nextState, callback) {
+        function bindQueryButtons(yesState, noState) {
             const buttons = stepContainer.querySelectorAll('[data-answer]');
             buttons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     const answer = btn.getAttribute('data-answer');
-                    if (callback) callback(answer);
-                    render(nextState);
+                    if (answer === 'yes') {
+                        render(yesState);
+                    } else {
+                        render(noState);
+                    }
                 });
             });
         }
