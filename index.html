@@ -317,19 +317,24 @@
         const appSubtitle = document.getElementById('appSubtitle');
 
         // 总步数映射（用于进度条）
-        const totalSteps = 10;
+        const totalSteps = 15;
         const stepIndexMap = {
             'idle': 0,
             'rainQuery': 1,
             'umbrella': 2,
             'coldQuery': 3,
             'jacket': 4,
-            'sunscreen': 5,
-            'repellent': 6,
-            'hairband': 7,
-            'tissue': 8,
-            'powerbank': 9,
-            'done': 10
+            'idQuery': 5,
+            'idCard': 6,
+            'utilities': 7,
+            'trashQuery': 8,
+            'trash': 9,
+            'sunscreen': 10,
+            'repellent': 11,
+            'hairband': 12,
+            'tissue': 13,
+            'powerbank': 14,
+            'done': 15
         };
 
         // 状态处理器
@@ -389,7 +394,7 @@
                         <p class="question-text">💨 感觉冷或风大吗？</p>
                         <div class="option-group">
                             <button class="btn btn-primary" data-next="jacket">是，带外套</button>
-                            <button class="btn btn-secondary" data-next="sunscreen">否，跳过</button>
+                            <button class="btn btn-secondary" data-next="idQuery">否，跳过</button>
                         </div>
                     </div>
                 `;
@@ -402,8 +407,74 @@
                     id: 'jacketCheck',
                     emoji: '🧥',
                     name: '带外套',
-                    nextState: 'sunscreen',
+                    nextState: 'idQuery',
                     stateKey: 'jacket'
+                });
+            },
+
+            idQuery() {
+                updateProgress('idQuery');
+                appTitle.textContent = "身份确认";
+                appSubtitle.textContent = "别忘了重要证件";
+
+                stepContainer.innerHTML = `
+                    <div class="step-card fade-in">
+                        <p class="question-text">🪪 需要带身份证吗？</p>
+                        <div class="option-group">
+                            <button class="btn btn-primary" data-next="idCard">是，带身份证</button>
+                            <button class="btn btn-secondary" data-next="utilities">否，跳过</button>
+                        </div>
+                    </div>
+                `;
+
+                bindOptionButtons();
+            },
+
+            idCard() {
+                renderCheckStep({
+                    id: 'idCardCheck',
+                    emoji: '🪪',
+                    name: '身份证',
+                    nextState: 'utilities',
+                    stateKey: 'idCard'
+                });
+            },
+
+            utilities() {
+                renderCheckStep({
+                    id: 'utilitiesCheck',
+                    emoji: '🔒',
+                    name: '关闭门窗水电',
+                    nextState: 'trashQuery',
+                    stateKey: 'utilities'
+                });
+            },
+
+            trashQuery() {
+                updateProgress('trashQuery');
+                appTitle.textContent = "内务确认";
+                appSubtitle.textContent = "保持家里整洁";
+
+                stepContainer.innerHTML = `
+                    <div class="step-card fade-in">
+                        <p class="question-text">🗑️ 需要倒垃圾吗？</p>
+                        <div class="option-group">
+                            <button class="btn btn-primary" data-next="trash">是，去倒垃圾</button>
+                            <button class="btn btn-secondary" data-next="sunscreen">否，跳过</button>
+                        </div>
+                    </div>
+                `;
+
+                bindOptionButtons();
+            },
+
+            trash() {
+                renderCheckStep({
+                    id: 'trashCheck',
+                    emoji: '🗑️',
+                    name: '倒垃圾',
+                    nextState: 'sunscreen',
+                    stateKey: 'trash'
                 });
             },
 
